@@ -16,12 +16,14 @@ WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl
 
 ENV NODE_ENV=production
-COPY package*.json ./
-RUN npm ci --omit=dev
 
+# Copy dulu dari builder, JANGAN npm ci lagi
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
+COPY package*.json ./
 
 EXPOSE 3000
-CMD ["node", "dist/server.js"]
+
+# Jalankan migrate dulu baru start server
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
