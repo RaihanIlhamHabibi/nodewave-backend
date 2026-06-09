@@ -1,28 +1,25 @@
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 
-# Copy package files and install full deps for build
 COPY package*.json ./
 COPY tsconfig.json ./
 RUN npm ci
 
-# Copy source & prisma files
 COPY . .
 
-# Build TypeScript and generate Prisma client
 RUN npm run build
 RUN npx prisma generate
 
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Install only production deps
-COPY package*.json ./
-RUN npm ci --only=production
+RUN apt-get update -y && apt-get install -y openssl
 
-# Copy built app and prisma artifacts from builder
+COPY package*.json ./
+RUN npm ci --omit=dev
+
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
