@@ -20,11 +20,17 @@ app.use('*', async (c, next) => {
   console.log(`${c.req.method} ${c.req.path} - ${ms}ms`);
 });
 
+// Respond to HEAD requests early so CDN/health-checks get a quick 200
+app.use('*', async (c, next) => {
+  if (c.req.method === 'HEAD') {
+    return c.text('', 200, { 'Cache-Control': 'no-store, max-age=0' });
+  }
+  await next();
+});
+
 // Return plain text at root to make health-check visible in browsers/proxies
 app.get('/', (c) => c.text('ok'));
-app.head('/', (c) => c.text('', 200, { 'Cache-Control': 'no-store, max-age=0' }));
 app.get('/health', (c) => c.json({ status: 'ok' }));
-app.head('/health', (c) => c.json({ status: 'ok' }));
 
 app.route('/auth', authRoutes);
 app.route('/projects', projectRoutes);
@@ -33,7 +39,8 @@ app.route('/audit', auditRoutes);
 
 // Catch-all GET route to ensure root and other GET paths return a visible response
 app.get('*', (c) => c.text('ok', 200, { 'Cache-Control': 'no-store, max-age=0' }));
-app.head('*', (c) => c.text('', 200, { 'Cache-Control': 'no-store, max-age=0' }));
+// Note: HEAD requests are handled by middleware above to avoid TypeScript
+// errors with Hono typings and ensure HEAD checks return 200.
 
 app.notFound((c) => c.json({ error: 'Not Found' }, 404));
 
