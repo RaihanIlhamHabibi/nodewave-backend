@@ -4,6 +4,10 @@ WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl
 
 COPY package*.json ./
+
+# Tambahkan entrypoint untuk menjalankan migrasi di background dan start server segera
+COPY entrypoint.sh ./
+RUN chmod +x ./entrypoint.sh
 RUN npm ci
 
 COPY . .
@@ -25,5 +29,5 @@ COPY package*.json ./
 
 EXPOSE 3000
 
-# Jalankan migrate dulu baru start server
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+# Jalankan entrypoint yang menjalankan migrate di background lalu start server
+CMD ["sh", "-c", "./entrypoint.sh"]
