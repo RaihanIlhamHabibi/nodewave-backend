@@ -6,6 +6,18 @@ const port = parseInt(process.env.PORT || '3000');
 const prisma = new PrismaClient();
 
 async function main() {
+  // Start server DULU biar health check Back4App langsung dapat response
+  serve(
+    {
+      fetch: app.fetch,
+      port,
+    },
+    () => {
+      console.log(`🚀 Server running on http://localhost:${port}`);
+    }
+  );
+
+  // Baru connect DB
   try {
     console.log('Connecting to database...');
     console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
@@ -15,13 +27,6 @@ async function main() {
     console.error('❌ Database connection failed:', err);
     process.exit(1);
   }
-
-  serve({
-    fetch: app.fetch,
-    port,
-  }, () => {
-    console.log(`🚀 Server running on http://localhost:${port}`);
-  });
 }
 
 main();

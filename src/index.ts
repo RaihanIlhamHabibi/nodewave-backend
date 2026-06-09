@@ -20,12 +20,13 @@ app.use('*', async (c, next) => {
   console.log(`${c.req.method} ${c.req.path} - ${ms}ms`);
 });
 
+app.get('/', (c) => c.json({ status: 'ok', message: 'API is running' }));
+app.get('/health', (c) => c.json({ status: 'ok' }));
+
 app.route('/auth', authRoutes);
 app.route('/projects', projectRoutes);
 app.route('/tasks', taskRoutes);
 app.route('/audit', auditRoutes);
-
-app.get('/health', (c) => c.json({ status: 'ok' }));
 
 app.notFound((c) => c.json({ error: 'Not Found' }, 404));
 
