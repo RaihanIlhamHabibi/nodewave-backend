@@ -1,0 +1,166 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  PRODUCT_MANAGER
+  UI_UX_DESIGNER
+  FRONTEND_ENGINEER
+  BACKEND_ENGINEER
+  CLIENT_GUEST
+}
+
+enum Department {
+  PRODUCT_MANAGEMENT
+  UI_UX
+  FRONTEND
+  BACKEND
+  CLIENT
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  password              String
+  name                  String
+  role                  Role
+  department            Department?
+  avatar                String?
+  deletedAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  projectsOwned         Project[]  @relation("projectOwner")
+  tasksAssigned         Task[]     @relation("taskAssignee")
+  auditLogs             AuditLog[]
+  clientAccess          ClientProjectAccess[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Project {
+  id                    String    @id @default(cuid())
+  name                  String
+  description           String?
+  ownerId               String
+  owner                 User      @relation("projectOwner", fields: [ownerId], references: [id])
+  status                String    @default("ACTIVE") // ACTIVE, ARCHIVED
+  deletedAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  version               Int       @default(1) // For optimistic locking
+
+  // Relations
+  tasks                 Task[]
+  clientAccess          ClientProjectAccess[]
+  auditLogs             AuditLog[]
+
+  @@index([ownerId])
+}
+
+model Task {
+  id                    String    @id @default(cuid())
+  projectId             String
+  project               Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title                 String
+  description           String?
+  status                TaskStatus @default(TODO)
+  assigneeId            String?
+  assignee              User?      @relation("taskAssignee", fields: [assigneeId], references: [id])
+  department            Department?
+  isClientVisible       Boolean    @default(false)
+  deletedAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  version               Int       @default(1) // For optimistic locking
+
+  // Relations
+  dependencies          TaskDependency[]   @relation("taskDependencies")
+  dependents            TaskDependency[]   @relation("taskDependents")
+  attachments           Attachment[]
+  auditLogs             AuditLog[]
+
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([status])
+}
+
+model TaskDependency {
+  id                    String    @id @default(cuid())
+  taskId                String
+  task                  Task      @relation("taskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTaskId       String
+  dependsOnTask         Task      @relation("taskDependents", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  createdAt             DateTime  @default(now())
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([taskId])
+  @@index([dependsOnTaskId])
+}
+
+model Attachment {
+  id                    String    @id @default(cuid())
+  taskId                String
+  task                  Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  url                   String
+  fileName              String
+  fileSize              Int
+  uploadedBy            String    // User ID (not foreign key, to preserve history)
+  deletedAt             DateTime?
+  createdAt             DateTime  @default(now())
+
+  @@index([taskId])
+}
+
+model AuditLog {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  projectId             String?
+  project               Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  taskId                String?
+  task                  Task?      @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  action                String    // CREATE, UPDATE, DELETE, STATUS_CHANGE
+  entityType            String    // PROJECT, TASK, ATTACHMENT
+  changedColumn         String?
+  oldValue              String?
+  newValue              String?
+  metadata              String?   // JSON
+  ipAddress             String?
+  createdAt             DateTime  @default(now())
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([taskId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+model ClientProjectAccess {
+  id                    String    @id @default(cuid())
+  clientId              String
+  client                User      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId             String
+  project               Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  accessLevel           String    @default("GUEST") // GUEST, ADMIN
+  grantedAt             DateTime  @default(now())
+  grantedBy             String    // PM user ID
+
+  @@unique([clientId, projectId])
+  @@index([clientId])
+  @@index([projectId])
+}
