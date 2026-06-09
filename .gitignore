@@ -1,12 +1,24 @@
+# Dependencies
 node_modules/
-.env
-.env.local
+
+# Build output
 dist/
 .next/
-.DS_Store
-*.log
-.git/
 build/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Git
+.git/
+
+# Misc
 .vercel/
 .turbo/
 coverage/
