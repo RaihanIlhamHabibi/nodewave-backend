@@ -11,9 +11,10 @@ async function main() {
     {
       fetch: app.fetch,
       port,
+      hostname: '0.0.0.0',
     },
     () => {
-      console.log(`🚀 Server running on http://localhost:${port}`);
+      console.log(`🚀 Server running on http://0.0.0.0:${port}`);
     }
   );
 
