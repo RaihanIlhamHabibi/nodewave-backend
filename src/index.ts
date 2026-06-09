@@ -29,6 +29,9 @@ app.route('/projects', projectRoutes);
 app.route('/tasks', taskRoutes);
 app.route('/audit', auditRoutes);
 
+// Catch-all GET route to ensure root and other GET paths return a visible response
+app.get('*', (c) => c.text('ok'));
+
 app.notFound((c) => c.json({ error: 'Not Found' }, 404));
 
 app.onError((err, c) => {
