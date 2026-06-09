@@ -30,7 +30,7 @@ app.route('/tasks', taskRoutes);
 app.route('/audit', auditRoutes);
 
 // Catch-all GET route to ensure root and other GET paths return a visible response
-app.get('*', (c) => c.text('ok'));
+app.get('*', (c) => c.text('ok', 200, { 'Cache-Control': 'no-store, max-age=0' }));
 
 app.notFound((c) => c.json({ error: 'Not Found' }, 404));
 
