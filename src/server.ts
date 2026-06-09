@@ -1,7 +1,7 @@
 import { serve } from '@hono/node-server';
-import app from './index.js';
+import app from './index';
 
-const port = parseInt(process.env.PORT || '3001');
+const port = parseInt(process.env.PORT || '3000');
 
 serve({
   fetch: app.fetch,
@@ -9,4 +9,3 @@ serve({
 }, () => {
   console.log(`🚀 Server running on http://localhost:${port}`);
 });
-
