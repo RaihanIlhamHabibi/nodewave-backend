@@ -20,7 +20,8 @@ app.use('*', async (c, next) => {
   console.log(`${c.req.method} ${c.req.path} - ${ms}ms`);
 });
 
-app.get('/', (c) => c.json({ status: 'ok', message: 'API is running' }));
+// Return plain text at root to make health-check visible in browsers/proxies
+app.get('/', (c) => c.text('ok'));
 app.get('/health', (c) => c.json({ status: 'ok' }));
 
 app.route('/auth', authRoutes);
