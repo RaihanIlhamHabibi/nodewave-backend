@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/server.js",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
@@ -11,7 +10,7 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "node dist/prisma/seed.js",
     "test": "echo \"No tests configured\""
   },
   "keywords": [],
