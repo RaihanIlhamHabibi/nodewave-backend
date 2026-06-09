@@ -25,7 +25,10 @@ ENV NODE_ENV=production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/entrypoint.sh ./
 COPY package*.json ./
+
+RUN chmod +x ./entrypoint.sh
 
 EXPOSE 3000
 
